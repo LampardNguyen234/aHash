@@ -3,6 +3,7 @@
 use ahash::{AHasher, RandomState};
 use criterion::*;
 use fxhash::FxHasher;
+use twox_hash::{XxHash};
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{BuildHasherDefault, Hash, Hasher};
@@ -52,6 +53,12 @@ fn fxhash<H: Hash>(b: &H) -> u64 {
 
 fn seahash<H: Hash>(b: &H) -> u64 {
     let mut hasher = seahash::SeaHasher::default();
+    b.hash(&mut hasher);
+    hasher.finish()
+}
+
+fn xxhash<H: Hash>(b: &H) -> u64 {
+    let mut hasher = XxHash::default();
     b.hash(&mut hasher);
     hasher.finish()
 }
@@ -110,6 +117,11 @@ fn bench_sea(c: &mut Criterion) {
 fn bench_sip(c: &mut Criterion) {
     let mut group = c.benchmark_group("sip");
     bench_inputs!(group, siphash);
+}
+
+fn bench_xxhash(c: &mut Criterion) {
+    let mut group = c.benchmark_group("xxhash");
+    bench_inputs!(group, xxhash);
 }
 
 fn bench_map(c: &mut Criterion) {
@@ -195,5 +207,6 @@ criterion_group!(
     bench_fnv,
     bench_sea,
     bench_sip,
+    bench_xxhash,
     bench_map
 );
